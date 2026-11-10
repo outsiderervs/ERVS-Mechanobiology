@@ -1,52 +1,59 @@
 #!/usr/bin/env python3
 """
-Eukaryotic Ribosomal Viscoelastic Shunt (ERVS) - Core Biophysical Simulation
-Models stress-triggered perinuclear phase-locking under hydrodynamic shear vectors.
+Eukaryotic Ribosomal Viscoelastic Shunt (ERVS) - Advanced Visual Simulation
+Models stress-triggered perinuclear phase-locking under hydrodynamic shear vectors
+and generates visual stress vs. impedance curves.
 """
 
 import math
 
-class ERVSSimulation:
-    def __init__(self, cell_radius_um=10.0, baseline_ribosome_density=5.0):
-        self.r_cell = cell_radius_um  # Cell radius in micrometers
-        self.density = baseline_ribosome_density  # Initial ribosomal density (particles/um^3)
-        self.lamina_threshold_mpa = 4.5  # Nuclear envelope rupture threshold in MPa
-        
-    def calculate_shear_stress(self, velocity_gradient, fluid_viscosity=1.2):
-        """Calculates external hydrodynamic shear stress vector (F) in MPa."""
-        return fluid_viscosity * velocity_gradient * 1e-3
+def run_simulation_and_plot():
+    # Attempt import of matplotlib for plotting
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        print("[!] Matplotlib not installed. Run 'pip install matplotlib' to generate charts.")
+        plt = None
 
-    def evaluate_shunt_activation(self, shear_stress):
-        """
-        Determines if mechanical stress breaches the critical threshold 
-        to trigger rapid perinuclear phase-locking of ribosomes.
-        """
-        print(f"[*] Incoming Shear Stress Vector: {shear_stress:.2f} MPa")
-        
-        if shear_stress >= self.lamina_threshold_mpa * 0.7:
-            print("[+] WARNING: Lamina threshold approach detected. ERVS SHUNT ENGAGED.")
-            return True
+    print("--- ERVS BIOMECHANICAL SHUNT SIMULATION v2.0 ---")
+    
+    # Parameters
+    lamina_threshold_mpa = 4.5  # Envelope rupture threshold (MPa)
+    baseline_density = 5.0      # Ribosomal density (particles/um^3)
+    
+    # Generate data points across shear gradient (0 to 8 MPa)
+    shear_vectors = [i * 0.1 for i in range(0, 81)]
+    impedance_curve = []
+    
+    for shear in shear_vectors:
+        if shear >= lamina_threshold_mpa * 0.7:
+            # Non-linear shear-thickening phase change (viscoelastic impedance surge)
+            z_impedance = (baseline_density * 14.2) * (1 + math.log10(1 + (shear - 3.15)))
         else:
-            print("[-] Shear stress below critical threshold. Translation active.")
-            return False
+            # Baseline fluid state
+            z_impedance = baseline_density * 1.5
+        impedance_curve.append(z_impedance)
 
-    def simulate_lattice_impedance(self, active_shunt, duration_sec=60):
-        """Simulates the build-up of the viscoelastic shear-thickening barrier and hysteresis recovery."""
-        if not active_shunt:
-            return "Standard metabolic state. No structural shift."
+    print(f"[*] Simulation complete. Threshold: {lamina_threshold_mpa} MPa.")
+    print(f"[*] Peak Viscoelastic Impedance: {max(impedance_curve):.2f} kPa·s")
+
+    # Generate Chart if matplotlib is available
+    if plt:
+        plt.figure(figsize=(8, 5))
+        plt.plot(shear_vectors, impedance_curve, label="Viscoelastic Impedance (Z)", color="#d9534f", linewidth=2.5)
+        plt.axvline(x=lamina_threshold_mpa * 0.7, color="#f0ad4e", linestyle="--", label="Shunt Trigger (3.15 MPa)")
+        plt.axvline(x=lamina_threshold_mpa, color="#d9534f", linestyle=":", label="Lamina Rupture Point (4.5 MPa)")
         
-        print(f"[*] Paracrystalline lattice forming along outer nuclear envelope...")
-        peak_impedance = self.density * 14.2  
-        print(f"[*] Peak Viscoelastic Impedance (Z) reached: {peak_impedance:.2f} kPa·s")
-        print(f"[*] Hysteresis timer active. Reversible fluidization initiated across {duration_sec}s window.")
-        return "Genome protected. Zero nuclear fracture events recorded."
+        plt.title("ERVS Phase-Locking: Hydrodynamic Shear vs. Perinuclear Impedance", fontsize=12, fontweight='bold')
+        plt.xlabel("Hydrodynamic Shear Stress Vector (MPa)", fontsize=10)
+        plt.ylabel("Viscoelastic Impedance Z (kPa·s)", fontsize=10)
+        plt.grid(True, linestyle="--", alpha=0.6)
+        plt.legend(loc="upper left")
+        
+        output_filename = "ervs_phase_diagram.png"
+        plt.savefig(output_filename, dpi=300, bbox_inches='tight')
+        print(f"[+] Saved high-res plot to '{output_filename}'")
+        plt.show()
 
 if __name__ == "__main__":
-    print("--- ERVS BIOMECHANICAL SHUNT SIMULATION v1.0 ---")
-    sim = ERVSSimulation()
-    
-    # Test case: Acute high-impact mechanical shock (e.g., trauma or extreme fluid shear)
-    test_shear = 5.2  # MPa
-    engaged = sim.evaluate_shunt_activation(test_shear)
-    result = sim.simulate_lattice_impedance(engaged, duration_sec=45)
-    print(f"[RESULT] {result}")
+    run_simulation_and_plot()
